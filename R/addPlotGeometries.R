@@ -61,7 +61,7 @@ addPlotGeometries<-function(target, x,
   x = as.data.frame(x)
   nrecords = nrow(x)
   nmissing = 0
-
+  
   circleVariables = c("radius")
   rectangleVariables = c("length", "width")
   lineVariables = c("length", "bandWidth")
@@ -90,8 +90,8 @@ addPlotGeometries<-function(target, x,
     }
   }
   
-
-
+  
+  
   #Optional mappings
   subPlotFlag = ("subPlotName" %in% names(mapping))
   if(subPlotFlag) {
@@ -101,8 +101,8 @@ addPlotGeometries<-function(target, x,
   if(shapeFlag) {
     shapes = as.character(x[[mapping[["shape"]]]])
   }
-
-
+  
+  
   #add methods
   methodIDs = character(0)
   methodCodes = list()
@@ -150,7 +150,7 @@ addPlotGeometries<-function(target, x,
       if(verbose) cat(paste0(" Measurement method '", method@name,"' for '",m,"' already included.\n"))
     }
   }
-
+  
   orinplots = length(target@plots)
   parsedPlots = character(0)
   parsedPlotIDs = character(0)
@@ -188,7 +188,6 @@ addPlotGeometries<-function(target, x,
     }
     #Add 'geometry' element if necessary
     if(!("geometry" %in% names(target@plots[[plotID]]))) target@plots[[plotID]]$geometry = list()
-    geometry = target@plots[[plotID]]$geometry
     
     # area measurements
     if("area" %in% names(mapping)) {
@@ -200,7 +199,7 @@ addPlotGeometries<-function(target, x,
       if(!(value %in% as.character(missing.values))) {
         if(method@attributeType== "quantitative") {
           value = as.numeric(value)
-          if(value> method@attributes[[1]]$upperLimit) {
+          if(value > method@attributes[[1]]$upperLimit) {
             stop(paste0("Area '", value,"' larger than upper limit of measurement definition. Please revise scale or data."))
           }
           else if(value < method@attributes[[1]]$lowerLimit) {
@@ -218,7 +217,7 @@ addPlotGeometries<-function(target, x,
         nmissing = nmissing + 1
       }
     }
-
+    
     if(shapeFlag) {
       #shape
       shape = NA
@@ -226,8 +225,9 @@ addPlotGeometries<-function(target, x,
         shape = shapes[i]
       }
       if(!is.na(shape)) {
+        s <- "shape"
         if(tolower(shape) %in% c("circle", "circular")) {
-          geometry$shape = "circle"
+          target@plots[[plotID]]$geometry[[s]] = "circle"
           for(m in circleVariables) {
             if(m %in% names(mapping)) {
               method = methods[[m]]
@@ -243,11 +243,11 @@ addPlotGeometries<-function(target, x,
                   else if(value < method@attributes[[1]]$lowerLimit) {
                     stop(paste0("Value '", value,"' smaller than lower limit of measurement definition. Please revise scale or data."))
                   }
-                  geometry[[m]] = list("attributeID" = attIDs[1], "value" = value)
+                  target@plots[[plotID]]$geometry[[m]] = list("attributeID" = attIDs[1], "value" = value)
                 } else {
                   ind = which(codes==value)
                   if(length(ind)==1) {
-                    geometry[[m]] = list("attributeID" = attIDs[ind], "value" = value)
+                    target@plots[[plotID]]$geometry[[m]] = list("attributeID" = attIDs[ind], "value" = value)
                   }
                   else stop(paste0("Value '", value,"' not found in dimension measurement definition. Please revise measurement classes or data."))
                 }
@@ -258,7 +258,7 @@ addPlotGeometries<-function(target, x,
           }
         }
         else if(tolower(shape) %in% c("rectangle", "rectangular", "square", "squared")) {
-          geometry$shape = "rectangle"
+          target@plots[[plotID]]$geometry[[s]] = "rectangle"
           for(m in rectangleVariables) {
             if(m %in% names(mapping)) {
               method = methods[[m]]
@@ -274,11 +274,11 @@ addPlotGeometries<-function(target, x,
                   else if(value < method@attributes[[1]]$lowerLimit) {
                     stop(paste0("Value '", value,"' smaller than lower limit of measurement definition. Please revise scale or data."))
                   }
-                  geometry[[m]] = list("attributeID" = attIDs[1], "value" = value)
+                  target@plots[[plotID]]$geometry[[m]] = list("attributeID" = attIDs[1], "value" = value)
                 } else {
                   ind = which(codes==value)
                   if(length(ind)==1) {
-                    geometry[[m]] = list("attributeID" = attIDs[ind], "value" = value)
+                    target@plots[[plotID]]$geometry[[m]] = list("attributeID" = attIDs[ind], "value" = value)
                   }
                   else stop(paste0("Value '", value,"' not found in dimension measurement definition. Please revise measurement classes or data."))
                 }
@@ -289,7 +289,7 @@ addPlotGeometries<-function(target, x,
           }
         }
         else if(tolower(shape) %in% c("line", "linear")) {
-          geometry$shape = "line"
+          target@plots[[plotID]]$geometry[[s]] = "line"
           for(m in lineVariables) {
             if(m %in% names(mapping)) {
               method = methods[[m]]
@@ -305,11 +305,11 @@ addPlotGeometries<-function(target, x,
                   else if(value < method@attributes[[1]]$lowerLimit) {
                     stop(paste0("Value '", value,"' smaller than lower limit of measurement definition. Please revise scale or data."))
                   }
-                  geometry[[m]] = list("attributeID" = attIDs[1], "value" = value)
+                  target@plots[[plotID]]$geometry[[m]] = list("attributeID" = attIDs[1], "value" = value)
                 } else {
                   ind = which(codes==value)
                   if(length(ind)==1) {
-                    geometry[[m]] = list("attributeID" = attIDs[ind], "value" = value)
+                    target@plots[[plotID]]$geometry[[m]] = list("attributeID" = attIDs[ind], "value" = value)
                   }
                   else stop(paste0("Value '", value,"' not found in dimension measurement definition. Please revise measurement classes or data."))
                 }
@@ -320,8 +320,7 @@ addPlotGeometries<-function(target, x,
           }
         }
       }
-    }
-    target@plots[[plotID]]$geometry = geometry
+    }    
   }
   finnplots = length(target@plots)
   if(verbose) {
@@ -329,6 +328,6 @@ addPlotGeometries<-function(target, x,
     cat(paste0(" ", nrecords," record(s) parsed.\n"))
     if(nmissing>0) cat(paste0(" ", nmissing, " record(s) with missing value(s) not added.\n"))
   }
-
+  
   return(target)
 }

@@ -67,13 +67,15 @@ addPlotLocations<-function(target, x,
                            toWGS84 = FALSE,
                            methods = list(),
                            missing.values = c(NA,""),
+                           missing.coords = c(NA, 0, ""),
+                           missing.elevation = c(NA, 0, ""),
                            verbose = TRUE) {
   if(class(target)!="VegX") stop("Wrong class for 'target'. Should be an object of class 'VegX'")
   x = as.data.frame(x)
   nrecords = nrow(x)
   nmissing = 0
-
-
+  
+  
   #check mappings
   nonCoordVariables = c("authorLocation","locationNarrative", "placeName", "placeType")
   coordVariables = c("x", "y", "elevation")
@@ -81,7 +83,7 @@ addPlotLocations<-function(target, x,
   mappingsAvailable = c("plotName", "subPlotName", "placementParty", allVariables)
   if(("y" %in% names(mapping)) && !("x" %in% names(mapping))) stop("Please supply mapping for 'x' to complete coordinates.")
   if(("x" %in% names(mapping)) && !("y" %in% names(mapping))) stop("Please supply mapping for 'y' to complete coordinates.")
-
+  
   #Warning for non-recognized mappings
   nonRecognizedMappings = names(mapping)[!(names(mapping) %in% mappingsAvailable)]
   if(length(nonRecognizedMappings)>0) warning(paste0("Mapping(s) for '",paste(nonRecognizedMappings, collapse = "', '"),"' is/are not recognized by the function and will be ignored."))
@@ -102,7 +104,7 @@ addPlotLocations<-function(target, x,
   
   
   plotNames = as.character(x[[mapping[["plotName"]]]])
-
+  
   #Optional mappings
   subPlotFlag = ("subPlotName" %in% names(mapping))
   if(subPlotFlag) {
@@ -112,7 +114,7 @@ addPlotLocations<-function(target, x,
   if(placementPartyFlag) {
     placementParties = as.character(x[[mapping[["placementParty"]]]])
   }
-
+  
   if(("y" %in% names(mapping)) && ("x" %in% names(mapping))) {
     if(toWGS84 && is.null(proj4string)) {
       stop("Cannot translate input coordinates to WGS84 if 'proj4string' is not specified.")
@@ -210,16 +212,16 @@ addPlotLocations<-function(target, x,
         partyID = npid$id
         if(npid$new) target@parties[[partyID]] = list(name = placementParties[i],
                                                       partyType = "individual")
-
+        
         target@plots[[plotID]]$placementPartyID = partyID
       }
     }
     #Add 'location' element if necessary
     if(!("location" %in% names(target@plots[[plotID]]))) target@plots[[plotID]]$location = list()
-
+    
     # Reset 'places' element if necessary
     if(reset.places && ("places" %in% names(target@plots[[plotID]]$location))) target@plots[[plotID]]$location$places = list()
-
+    
     # Add new location if necessary
     if(("placeName" %in% names(mapping)) || ("placeType" %in% names(mapping))) {
       #Add 'places' element if necessary
@@ -227,7 +229,7 @@ addPlotLocations<-function(target, x,
       newloc = length(target@plots[[plotID]]$location$places)+1
       target@plots[[plotID]]$location$places[[newloc]] = list()
     }
-
+    
     #Add plot location data (non coordinate variables)
     for(m in names(mapping)[names(mapping) %in% nonCoordVariables]) {
       value = locValues[[m]][i]
@@ -248,7 +250,7 @@ addPlotLocations<-function(target, x,
       attIDs = methodAttIDs[[m]]
       codes = methodCodes[[m]]
       value = as.character(locValues[[m]][i])
-      if(!(value %in% as.character(missing.values))) {
+      if(!(value %in% as.character(missing.elevation))) {
         if(method@attributeType== "quantitative") {
           value = as.numeric(value)
           if(value> method@attributes[[1]]$upperLimit) {
@@ -279,6 +281,14 @@ addPlotLocations<-function(target, x,
         attIDs = methodAttIDs[[m]]
         codes = methodCodes[[m]]
       }
+      
+      if(locValues[["x"]][i] %in% missing.coords) {
+        locValues[["x"]][i] <- NA
+      }
+      if(locValues[["y"]][i] %in% missing.coords) {
+        locValues[["y"]][i] <- NA
+      }       
+      
       x = as.numeric(locValues[["x"]][i])
       y = as.numeric(locValues[["y"]][i])
       if((!is.na(x)) && (!is.na(y))) {
@@ -300,13 +310,13 @@ addPlotLocations<-function(target, x,
   }
   finnplots = length(target@plots)
   finnparties = length(target@parties)
-
+  
   if(verbose) {
     cat(paste0(" " , length(parsedPlots)," plot(s) parsed, ", finnplots-orinplots, " new plot(s) added.\n"))
     if(finnparties > orinparties) cat(paste0(" " , finnparties-orinparties, " new partie(s) were added to the document as individuals. Consider providing party information.\n"))
     cat(paste0(" ", nrecords," record(s) parsed.\n"))
     if(nmissing>0) cat(paste0(" ", nmissing, " record(s) with missing value(s) not added.\n"))
   }
-
+  
   return(target)
 }
