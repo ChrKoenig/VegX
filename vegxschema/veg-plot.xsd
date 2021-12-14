@@ -41,7 +41,7 @@
                     <xsd:documentation xml:lang="en">Plot identifier that is unique across the dataset and derived from the data source, and preferably globally unique.  A GUID (globally unique identifier) would be ideal for this purpose, such as LSID (Life Science Identifier).  See http://www.tdwg.org/activities/online-services/lsid-authority-ids/.	</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="relatedPlot" type="plot:relatedPlotType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="relatedPlot" type="relatedPlotType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>A plot may be related spatially to other plots in order to express parent-child, sub-plot or contiguity. </xsd:documentation>
                 </xsd:annotation>
